@@ -1,0 +1,29 @@
+name: build-and-attest
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build artifact
+        run: |
+          mkdir -p dist
+          tar -czf dist/pilot-${GITHUB_SHA}.tar.gz -C src hello.sh
+          sha256sum dist/pilot-${GITHUB_SHA}.tar.gz
+      - name: Attest build provenance
+        uses: actions/attest@v4.2.2
+        with:
+          subject-path: dist/pilot-*.tar.gz
